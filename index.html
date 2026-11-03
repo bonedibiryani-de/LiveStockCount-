@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bonedi House — Inventory Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* ── LIGHT THEME (Afternoon) ── */
+        :root {
+            --bg: #fafaf9;
+            --surface: #ffffff;
+            --surface-alt: #fafaf9;
+            --border: #e7e5e4;
+            --border-strong: #d6d3d1;
+            --text: #1c1917;
+            --text-muted: #78716c;
+            --text-subtle: #a8a29e;
+            --accent: #9a3412;
+            --accent-hover: #7c2d12;
+            --accent-soft: #fff7ed;
+            --accent-border: #fed7aa;
+            --success: #166534;
+            --success-soft: #f0fdf4;
+            --success-border: #bbf7d0;
+            --warning: #a16207;
+            --warning-soft: #fefce8;
+            --warning-border: #fef08a;
+            --danger: #991b1b;
+            --danger-soft: #fef2f2;
+            --danger-border: #fecaca;
+            --shadow-sm: 0 1px 3px rgba(28, 25, 23, 0.05);
+            --shadow-md: 0 4px 16px rgba(28, 25, 23, 0.06);
+            --tfoot-bg: #1c1917;
+            --tfoot-text: #ffffff;
+            --tfoot-muted: #d6d3d1;
+        }
+
+        /* ── DARK THEME (Evening) ── */
+        body.dark-theme {
+            --bg: #0c0a09;
+            --surface: #1c1917;
+            --surface-alt: #292524;
+            --border: #292524;
+            --border-strong: #44403c;
+            --text: #f5f5f4;
+            --text-muted: #a8a29e;
+            --text-subtle: #78716c;
+            --accent: #fb923c;
+            --accent-hover: #f97316;
+            --accent-soft: #431407;
+            --accent-border: #7c2d12;
+            --success: #4ade80;
+            --success-soft: #052e16;
+            --success-border: #166534;
+            --warning: #facc15;
+            --warning-soft: #422006;
+            --warning-border: #854d0e;
+            --danger: #f87171;
+            --danger-soft: #450a0a;
+            --danger-border: #991b1b;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+            --tfoot-bg: #fb923c;
+            --tfoot-text: #1c1917;
+            --tfoot-muted: #431407;
+        }
+
+        body {
+            background: var(--bg);
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            padding: 2.5rem 1.5rem 3rem;
+            min-height: 100vh;
+            color: var(--text);
+            -webkit-font-smoothing: antialiased;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: background-color 0.4s ease, color 0.4s ease;
+        }
+
+        .container { max-width: 1240px; width: 100%; }
+
+        /* ── HEADER ── */
+        .header { text-align: center; margin-bottom: 2rem; position: relative; }
+        .header .eyebrow {
+            font-size: 0.72rem; font-weight: 600; letter-spacing: 0.22em;
+            text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.75rem;
+            transition: color 0.4s ease;
+        }
+        .header h1 {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 2.6rem; font-weight: 700; letter-spacing: -0.01em;
+            color: var(--text); line-height: 1.1;
+            transition: color 0.4s ease;
+        }
+        .header .subtitle {
+            font-size: 0.9rem; color: var(--text-muted); margin-top: 0.6rem; font-weight: 400;
+            transition: color 0.4s ease;
+        }
+
+        /* ── TOP CONTROLS ── */
+        .top-controls {
+            display: flex; align-items: stretch; gap: 1rem;
+            margin-bottom: 2.25rem; flex-wrap: wrap;
+        }
+
+        .date-bar {
+            display: flex; align-items: center; gap: 0.75rem;
+            padding: 0.9rem 1.25rem;
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 14px; flex: 1 1 320px; min-width: 0; flex-wrap: wrap;
+            transition: background-color 0.4s ease, border-color 0.4s ease;
+        }
+        .date-bar .date-label {
+            font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.12em; color: var(--text-muted); white-space: nowrap;
+            transition: color 0.4s ease;
+        }
+        .date-display {
+            display: flex; align-items: center; gap: 0.5rem;
+            font-size: 1rem; font-weight: 600; color: var(--text);
+            padding: 0.45rem 0.9rem;
+            background: var(--surface-alt); border: 1px solid var(--border);
+            border-radius: 8px; cursor: pointer;
+            transition: border-color 0.15s, background 0.4s, color 0.4s;
+        }
+        .date-display:hover { border-color: var(--border-strong); }
+        .date-display svg { width: 16px; height: 16px; color: var(--accent); flex-shrink: 0; transition: color 0.4s ease; }
+        .date-display input[type="date"] {
+            border: none; background: transparent; font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem; font-weight: 600; color: var(--text);
+            outline: none; cursor: pointer; padding: 0;
+            transition: color 0.4s ease;
+        }
+        .date-display input[type="date"]::-webkit-calendar-picker-indicator {
+            cursor: pointer; opacity: 0.6;
+        }
+        body.dark-theme .date-display input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1) opacity(0.7);
+        }
+        .day-name {
+            font-size: 0.82rem; font-weight: 600; color: var(--accent);
+            background: var(--accent-soft); padding: 0.3rem 0.85rem;
+            border-radius: 20px; letter-spacing: 0.02em; white-space: nowrap;
+            border: 1px solid transparent;
+            transition: all 0.4s ease;
+        }
+        body.dark-theme .day-name {
+            border-color: var(--accent-border);
+        }
+
+        /* ── SESSION SWITCHER ── */
+        .session-switcher {
+            display: flex; background: var(--surface);
+            border: 1px solid var(--border); border-radius: 14px;
+            padding: 0.35rem; gap: 0.25rem; flex: 0 0 auto;
+            transition: background-color 0.4s ease, border-color 0.4s ease;
+        }
+        .session-btn {
+            display: flex; align-items: center; gap: 0.55rem;
+            padding: 0.75rem 1.5rem;
+            border: none; background: transparent; border-radius: 10px;
+            font-family: 'DM Sans', sans-serif; font-size: 0.92rem; font-weight: 600;
+            color: var(--text-muted); cursor: pointer;
+            transition: all 0.2s ease; white-space: nowrap;
+        }
+        .session-btn .session-icon { font-size: 1.05rem; line-height: 1; }
+        .session-btn:hover { color: var(--text); background: var(--surface-alt); }
+        .session-btn.active {
+            background: var(--accent); color: #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+        .session-btn.active:hover { background: var(--accent-hover); }
+        .session-btn .session-badge {
+            font-size: 0.68rem; font-weight: 700;
+            background: rgba(255,255,255,0.22);
+            padding: 0.15rem 0.45rem; border-radius: 10px; letter-spacing: 0.03em;
+        }
+        .session-btn:not(.active) .session-badge {
+            background: var(--surface-alt); color: var(--text-subtle);
+        }
+
+        /* ── SECTION TITLES ── */
+        .section-label {
+            display: flex; align-items: baseline; justify-content: space-between;
+            margin-bottom: 1.1rem;
+        }
+        .section-label h2 {
+            font-size: 0.78rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.14em; color: var(--text-muted);
+            transition: color 0.4s ease;
+        }
+        .section-label .helper {
+            font-size: 0.78rem; color: var(--text-subtle); font-weight: 500;
+            transition: color 0.4s ease;
+        }
+
+        /* ── STOCK PANEL ── */
+        .stock-panel { margin-bottom: 2.5rem; }
+        .stock-grid {
+            display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.75rem;
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 14px; padding: 1.4rem;
+            transition: background-color 0.4s ease, border-color 0.4s ease;
+        }
+        .stock-field { display: flex; flex-direction: column; gap: 0.5rem; }
+        .stock-field label {
+            font-size: 0.7rem; font-weight: 600; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 0.06em;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            transition: color 0.4s ease;
+        }
+        .stock-field input {
+            width: 100%; padding: 0.6rem 0.7rem;
+            border: 1px solid var(--border); border-radius: 8px;
+            font-size: 1rem; font-weight: 600; font-family: 'DM Sans', sans-serif;
+            color: var(--text); background: var(--surface-alt);
+            outline: none; text-align: center;
+            transition: border-color 0.15s, background 0.4s, color 0.4s, box-shadow 0.15s;
+        }
+        .stock-field input:focus {
+            border-color: var(--accent); background: var(--surface);
+            box-shadow: 0 0 0 3px rgba(154, 52, 18, 0.08);
+        }
+        body.dark-theme .stock-field input:focus {
+            box-shadow: 0 0 0 3px rgba(251, 146, 60, 0.15);
+        }
+
+        .apply-row { display: flex; justify-content: flex-end; margin-top: 0.9rem; }
+        .btn-apply {
+            background: var(--accent); color: #fff; border: none;
+            padding: 0.65rem 1.8rem; border-radius: 8px;
+            font-size: 0.82rem; font-weight: 600; font-family: 'DM Sans', sans-serif;
+            letter-spacing: 0.03em; cursor: pointer;
+            transition: background 0.2s, transform 0.08s;
+        }
+        .btn-apply:hover  { background: var(--accent-hover); }
+        .btn-apply:active { transform: scale(0.98); }
+
+        /* ── MENU CARDS ── */
+        .menu-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 1rem; margin-bottom: 2.5rem;
+        }
+        .card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 14px; padding: 1.35rem 1.35rem 1.25rem;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.4s;
+        }
+        .card:hover { border-color: var(--border-strong); box-shadow: var(--shadow-md); }
+        .card-head {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 1.15rem; padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+            transition: border-color 0.4s ease;
+        }
+        .card-name {
+            font-size: 1.02rem; font-weight: 600; color: var(--text);
+            letter-spacing: -0.01em; transition: color 0.4s ease;
+        }
+        .card-emoji { font-size: 1.35rem; line-height: 1; opacity: 0.85; }
+        .card-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.55rem; margin-bottom: 1.15rem; }
+        .stat {
+            text-align: center; padding: 0.55rem 0.3rem; border-radius: 8px;
+            background: var(--surface-alt);
+            transition: background 0.4s ease;
+        }
+        .stat-label {
+            font-size: 0.63rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.08em; color: var(--text-subtle); margin-bottom: 0.3rem;
+            transition: color 0.4s ease;
+        }
+        .stat-value {
+            font-size: 1.15rem; font-weight: 700; color: var(--text);
+            line-height: 1; font-variant-numeric: tabular-nums;
+            transition: color 0.4s ease;
+        }
+        .stat.remaining-good { background: var(--success-soft); }
+        .stat.remaining-good .stat-value { color: var(--success); }
+        .stat.remaining-low  { background: var(--warning-soft); }
+        .stat.remaining-low  .stat-value { color: var(--warning); }
+        .stat.remaining-none { background: var(--danger-soft); }
+        .stat.remaining-none .stat-value { color: var(--danger); }
+
+        .btn-sell {
+            width: 100%; padding: 0.72rem;
+            border: 1px solid var(--accent); border-radius: 8px;
+            background: transparent; color: var(--accent);
+            font-size: 0.82rem; font-weight: 600; font-family: 'DM Sans', sans-serif;
+            letter-spacing: 0.02em; cursor: pointer;
+            transition: background 0.15s, color 0.15s, transform 0.08s, border-color 0.4s;
+        }
+        .btn-sell:hover { background: var(--accent); color: #fff; }
+        body.dark-theme .btn-sell:hover { color: #1c1917; }
+        .btn-sell:active { transform: scale(0.98); }
+        .btn-sell:disabled {
+            border-color: var(--border); background: var(--surface-alt);
+            color: var(--text-subtle); cursor: not-allowed; transform: none;
+        }
+
+        /* ── SUMMARY TABLE ── */
+        .summary-section { margin-bottom: 2.25rem; }
+        .summary-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 14px; overflow: hidden;
+            transition: background-color 0.4s ease, border-color 0.4s ease;
+        }
+        .summary-head {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 1.1rem 1.4rem; border-bottom: 1px solid var(--border);
+            flex-wrap: wrap; gap: 0.5rem;
+            transition: border-color 0.4s ease;
+        }
+        .summary-head h2 {
+            font-size: 0.78rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.14em; color: var(--text-muted);
+            transition: color 0.4s ease;
+        }
+        .summary-head .head-right { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+        .summary-date {
+            font-size: 0.78rem; font-weight: 600; color: var(--text-muted);
+            background: var(--surface-alt); padding: 0.3rem 0.8rem;
+            border-radius: 20px; border: 1px solid var(--border);
+            transition: all 0.4s ease;
+        }
+        .session-tag {
+            font-size: 0.7rem; font-weight: 700; padding: 0.3rem 0.75rem;
+            border-radius: 20px; text-transform: uppercase; letter-spacing: 0.08em;
+            white-space: nowrap; transition: all 0.4s ease;
+        }
+        .session-tag.afternoon { background: #fff7ed; color: #9a3412; border: 1px solid #fed7aa; }
+        .session-tag.evening   { background: #431407; color: #fb923c; border: 1px solid #7c2d12; }
+        .live-tag {
+            font-size: 0.65rem; font-weight: 700; color: var(--success);
+            background: var(--success-soft); border: 1px solid var(--success-border);
+            padding: 0.25rem 0.65rem; border-radius: 20px;
+            text-transform: uppercase; letter-spacing: 0.1em;
+            display: flex; align-items: center; gap: 0.4rem;
+            transition: all 0.4s ease;
+        }
+        .live-tag::before {
+            content: ''; width: 5px; height: 5px; background: #22c55e;
+            border-radius: 50%; animation: pulse 1.6s ease infinite;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+        .summary-table-wrapper { overflow-x: auto; }
+        table.summary-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+        .summary-table thead th {
+            background: var(--surface-alt); color: var(--text-muted);
+            font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.1em; text-align: left;
+            padding: 0.75rem 1.4rem; border-bottom: 1px solid var(--border);
+            white-space: nowrap; transition: all 0.4s ease;
+        }
+        .summary-table thead th.num-col { text-align: right; }
+        .summary-table tbody td {
+            padding: 0.85rem 1.4rem;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+            transition: border-color 0.4s ease, background 0.4s ease;
+        }
+        .summary-table tbody tr:last-child td { border-bottom: none; }
+        .summary-table tbody tr:hover { background: var(--surface-alt); }
+        .summary-table td.num-col {
+            text-align: right; font-weight: 600; font-variant-numeric: tabular-nums;
+            transition: color 0.4s ease;
+        }
+        .item-cell {
+            display: flex; align-items: center; gap: 0.65rem;
+            font-weight: 600; color: var(--text);
+            transition: color 0.4s ease;
+        }
+        .row-emoji { font-size: 1.1rem; opacity: 0.85; }
+        .status-pill {
+            display: inline-block; font-size: 0.68rem; font-weight: 700;
+            padding: 0.25rem 0.6rem; border-radius: 20px; letter-spacing: 0.03em;
+            white-space: nowrap; text-transform: uppercase;
+            transition: all 0.4s ease;
+        }
+        .status-pill.in-stock  { background: var(--success-soft); color: var(--success); border: 1px solid var(--success-border); }
+        .status-pill.low-stock { background: var(--warning-soft); color: var(--warning); border: 1px solid var(--warning-border); }
+        .status-pill.out-stock { background: var(--danger-soft);  color: var(--danger);  border: 1px solid var(--danger-border); }
+        .remaining-cell { font-weight: 700; font-variant-numeric: tabular-nums; }
+        .remaining-cell.good { color: var(--success); }
+        .remaining-cell.low  { color: var(--warning); }
+        .remaining-cell.none { color: var(--danger); }
+        .summary-table tfoot td {
+            padding: 0.95rem 1.4rem;
+            background: var(--tfoot-bg); color: var(--tfoot-text);
+            font-weight: 700; font-size: 0.82rem; letter-spacing: 0.02em;
+            transition: all 0.4s ease;
+        }
+        .summary-table tfoot td.num-col {
+            text-align: right; font-variant-numeric: tabular-nums; font-size: 0.95rem;
+        }
+        .summary-table tfoot .foot-label {
+            text-transform: uppercase; letter-spacing: 0.12em;
+            font-size: 0.7rem; color: var(--tfoot-muted);
+            transition: color 0.4s ease;
+        }
+
+        /* ── RESET BAR ── */
+        .reset-bar {
+            display: flex; align-items: center; justify-content: flex-end;
+            gap: 0.6rem; padding-top: 1.5rem;
+            border-top: 1px solid var(--border); flex-wrap: wrap;
+            transition: border-color 0.4s ease;
+        }
+        .reset-note {
+            font-size: 0.78rem; color: var(--text-subtle);
+            margin-right: auto; font-style: italic;
+            transition: color 0.4s ease;
+        }
+        .btn-reset {
+            background: transparent; border: 1px solid var(--border-strong);
+            color: var(--text-muted); padding: 0.55rem 1.3rem; border-radius: 8px;
+            font-size: 0.78rem; font-weight: 600; font-family: 'DM Sans', sans-serif;
+            cursor: pointer; transition: all 0.15s;
+        }
+        .btn-reset:hover {
+            background: var(--surface-alt); border-color: var(--text-muted); color: var(--text);
+        }
+        .btn-reset.confirm { background: var(--danger); border-color: var(--danger); color: #fff; }
+        .btn-reset.confirm:hover { filter: brightness(0.9); }
+
+        .hidden { display: none !important; }
+
+        .footer {
+            text-align: center; font-size: 0.72rem; color: var(--text-subtle);
+            margin-top: 2rem; letter-spacing: 0.04em; text-transform: uppercase;
+            transition: color 0.4s ease;
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 1024px) {
+            .stock-grid { grid-template-columns: repeat(3, 1fr); }
+            .menu-grid  { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .session-btn { padding: 0.65rem 1rem; font-size: 0.85rem; }
+            .session-switcher { flex: 1 1 100%; justify-content: center; }
+        }
+        @media (max-width: 640px) {
+            body { padding: 1.5rem 1rem 2rem; }
+            .header h1 { font-size: 2rem; }
+            .date-bar { padding: 0.9rem 1rem; }
+            .date-bar .date-label { width: 100%; }
+            .stock-grid { grid-template-columns: repeat(2, 1fr); padding: 1rem; }
+            .menu-grid  { grid-template-columns: 1fr; }
+            .card { padding: 1.15rem; }
+            .summary-table thead th,
+            .summary-table tbody td,
+            .summary-table tfoot td { padding: 0.6rem 0.85rem; font-size: 0.82rem; }
+            .summary-head { padding: 0.9rem 1rem; }
+            .reset-bar { justify-content: center; }
+            .reset-note { width: 100%; text-align: center; margin-bottom: 0.4rem; }
+        }
+        @media (max-width: 400px) {
+            .stock-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <div class="eyebrow">Inventory &amp; Sales</div>
+            <h1>Bonedi House</h1>
+            <div class="subtitle">Daily stock management &amp; live sales counter</div>
+        </div>
+
+        <!-- DATE + SESSION CONTROLS -->
+        <div class="top-controls">
+            <div class="date-bar">
+                <span class="date-label">Tracking Date</span>
+                <label class="date-display" for="datePicker">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    <input type="date" id="datePicker">
+                </label>
+                <span class="day-name" id="dayName">—</span>
+            </div>
+
+            <div class="session-switcher" id="sessionSwitcher">
+                <button class="session-btn active" data-session="afternoon">
+                    <span class="session-icon">☀️</span>
+                    Afternoon
+                    <span class="session-badge" id="badgeAfternoon">0</span>
+                </button>
+                <button class="session-btn" data-session="evening">
+                    <span class="session-icon">🌙</span>
+                    Evening
+                    <span class="session-badge" id="badgeEvening">0</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- STOCK PANEL -->
+        <div class="stock-panel">
+            <div class="section-label">
+                <h2>Set Daily Stock <span id="stockSessionLabel" style="color: var(--accent); text-transform: none; letter-spacing: 0; font-weight: 600;">— Afternoon</span></h2>
+                <span class="helper">Enter quantities, then apply</span>
+            </div>
+            <div class="stock-grid" id="stockGrid"></div>
+            <div class="apply-row">
+                <button class="btn-apply" id="applyStockBtn">Apply Stock</button>
+            </div>
+        </div>
+
+        <!-- MENU CARDS -->
+        <div class="section-label">
+            <h2>Record Sales <span id="salesSessionLabel" style="color: var(--accent); text-transform: none; letter-spacing: 0; font-weight: 600;">— Afternoon</span></h2>
+            <span class="helper">Click to record a sale</span>
+        </div>
+        <div class="menu-grid" id="menuGrid"></div>
+
+        <!-- SUMMARY TABLE -->
+        <div class="summary-section">
+            <div class="section-label">
+                <h2>Stock Summary</h2>
+            </div>
+            <div class="summary-card">
+                <div class="summary-head">
+                    <h2>Live Overview</h2>
+                    <div class="head-right">
+                        <span class="session-tag afternoon" id="sessionTag">Afternoon</span>
+                        <span class="summary-date" id="summaryDate">—</span>
+                        <span class="live-tag">Live</span>
+                    </div>
+                </div>
+                <div class="summary-table-wrapper">
+                    <table class="summary-table" id="summaryTable">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th class="num-col">Stock</th>
+                                <th class="num-col">Sold</th>
+                                <th class="num-col">Remaining</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="summaryBody"></tbody>
+                        <tfoot>
+                            <tr>
+                                <td class="foot-label">Grand Total</td>
+                                <td class="num-col" id="totalStock">0</td>
+                                <td class="num-col" id="totalSold">0</td>
+                                <td class="num-col" id="totalRemaining">0</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- RESET BAR -->
+        <div class="reset-bar">
+            <span class="reset-note" id="resetNote">Reset clears all sales for this session and restores stock to the values above.</span>
+            <button class="btn-reset" id="resetRequestBtn">Reset Session</button>
+            <button class="btn-reset confirm hidden" id="confirmResetBtn">Confirm Reset</button>
+            <button class="btn-reset hidden" id="cancelResetBtn">Cancel</button>
+        </div>
+
+        <div class="footer">Bonedi House — Internal Use</div>
+    </div>
+
+    <script>
+        (function () {
+            // ── ITEMS (shared across sessions) ──
+            const itemDefs = [
+                { key: 'muttonBiryani',  display: 'Mutton Biryani',  emoji: '🍚', inputId: 'inputMuttonBiryani',  defaultStock: 20 },
+                { key: 'chickenBiryani', display: 'Chicken Biryani', emoji: '🍗', inputId: 'inputChickenBiryani', defaultStock: 25 },
+                { key: 'alooBiryani',    display: 'Aloo Biryani',    emoji: '🥔', inputId: 'inputAlooBiryani',    defaultStock: 15 },
+                { key: 'eggBiryani',     display: 'Egg Biryani',     emoji: '🥚', inputId: 'inputEggBiryani',     defaultStock: 12 },
+                { key: 'chickenChap',    display: 'Chicken Chap',    emoji: '🍗', inputId: 'inputChickenChap',    defaultStock: 18 },
+                { key: 'muttonChap',     display: 'Mutton Chap',     emoji: '🍖', inputId: 'inputMuttonChap',     defaultStock: 10 }
+            ];
+
+            // ── SESSIONS STATE ──
+            const sessions = {
+                afternoon: {
+                    label: 'Afternoon',
+                    items: itemDefs.map(d => ({ ...d, stock: d.defaultStock, sold: 0 }))
+                },
+                evening: {
+                    label: 'Evening',
+                    items: itemDefs.map(d => ({ ...d, stock: d.defaultStock, sold: 0 }))
+                }
+            };
+
+            let activeSession = 'afternoon';
+
+            // ── DOM ──
+            const stockGrid        = document.getElementById('stockGrid');
+            const menuGrid         = document.getElementById('menuGrid');
+            const summaryBody      = document.getElementById('summaryBody');
+            const totalStockEl     = document.getElementById('totalStock');
+            const totalSoldEl      = document.getElementById('totalSold');
+            const totalRemainingEl = document.getElementById('totalRemaining');
+            const applyStockBtn    = document.getElementById('applyStockBtn');
+            const resetRequestBtn  = document.getElementById('resetRequestBtn');
+            const confirmResetBtn  = document.getElementById('confirmResetBtn');
+            const cancelResetBtn   = document.getElementById('cancelResetBtn');
+            const resetNote        = document.getElementById('resetNote');
+            const datePicker       = document.getElementById('datePicker');
+            const dayNameEl        = document.getElementById('dayName');
+            const summaryDateEl    = document.getElementById('summaryDate');
+            const sessionTagEl     = document.getElementById('sessionTag');
+            const stockSessionLabel= document.getElementById('stockSessionLabel');
+            const salesSessionLabel= document.getElementById('salesSessionLabel');
+            const badgeAfternoon   = document.getElementById('badgeAfternoon');
+            const badgeEvening     = document.getElementById('badgeEvening');
+            const sessionBtns      = document.querySelectorAll('.session-btn');
+
+            const DAYS   = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
+                            'July', 'August', 'September', 'October', 'November', 'December'];
+
+            // ── HELPERS ──
+            function currentItems() { return sessions[activeSession].items; }
+            function remainingOf(item) { return Math.max(0, item.stock - item.sold); }
+
+            function statusOf(item) {
+                const rem = remainingOf(item);
+                if (rem === 0) return { label: 'Out of Stock', cls: 'out-stock' };
+                if (rem <= 3)  return { label: 'Low Stock',    cls: 'low-stock' };
+                return            { label: 'In Stock',     cls: 'in-stock'  };
+            }
+            function remainingClassOf(item) {
+                const rem = remainingOf(item);
+                if (rem === 0) return 'none';
+                if (rem <= 3)  return 'low';
+                return 'good';
+            }
+            function formatDateShort(dateStr) {
+                if (!dateStr) return '—';
+                const d = new Date(dateStr + 'T00:00:00');
+                if (isNaN(d)) return '—';
+                return `${d.getDate()} ${MONTHS[d.getMonth()].slice(0,3)} ${d.getFullYear()}`;
+            }
+            function updateDateDisplay() {
+                const val = datePicker.value;
+                dayNameEl.textContent     = val ? DAYS[new Date(val + 'T00:00:00').getDay()] : '—';
+                summaryDateEl.textContent = formatDateShort(val);
+            }
+            function setToday() {
+                const t = new Date();
+                datePicker.value = `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+                updateDateDisplay();
+            }
+            function updateBadges() {
+                badgeAfternoon.textContent = sessions.afternoon.items.reduce((s, i) => s + i.sold, 0);
+                badgeEvening.textContent   = sessions.evening.items.reduce((s, i) => s + i.sold, 0);
+            }
+
+            // ── BUILD STOCK INPUTS ──
+            function buildStockInputs() {
+                stockGrid.innerHTML = '';
+                currentItems().forEach(item => {
+                    const field = document.createElement('div');
+                    field.className = 'stock-field';
+                    field.innerHTML = `
+                        <label for="${item.inputId}" title="${item.display}">${item.display}</label>
+                        <input type="number" id="${item.inputId}" value="${item.stock}" min="0" step="1">
+                    `;
+                    stockGrid.appendChild(field);
+                });
+            }
+
+            // ── RENDER MENU CARDS ──
+            function renderCards() {
+                menuGrid.innerHTML = '';
+                currentItems().forEach((item, index) => {
+                    const rem = remainingOf(item);
+                    const remCls = remainingClassOf(item);
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.innerHTML = `
+                        <div class="card-head">
+                            <span class="card-name">${item.display}</span>
+                            <span class="card-emoji">${item.emoji}</span>
+                        </div>
+                        <div class="card-stats">
+                            <div class="stat">
+                                <div class="stat-label">Stock</div>
+                                <div class="stat-value">${item.stock}</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-label">Sold</div>
+                                <div class="stat-value">${item.sold}</div>
+                            </div>
+                            <div class="stat remaining-${remCls}">
+                                <div class="stat-label">Left</div>
+                                <div class="stat-value">${rem}</div>
+                            </div>
+                        </div>
+                        <button class="btn-sell" ${rem <= 0 ? 'disabled' : ''} data-index="${index}">
+                            ${rem <= 0 ? 'Sold Out' : 'Record Sale'}
+                        </button>
+                    `;
+                    menuGrid.appendChild(card);
+                });
+                document.querySelectorAll('.btn-sell').forEach(btn => {
+                    if (!btn.disabled) btn.addEventListener('click', handleSell);
+                });
+            }
+
+            // ── RENDER SUMMARY ──
+            function renderSummary() {
+                summaryBody.innerHTML = '';
+                let gStock = 0, gSold = 0, gRem = 0;
+                currentItems().forEach(item => {
+                    const rem = remainingOf(item);
+                    const status = statusOf(item);
+                    const remCls = remainingClassOf(item);
+                    gStock += item.stock; gSold += item.sold; gRem += rem;
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>
+                            <div class="item-cell">
+                                <span class="row-emoji">${item.emoji}</span>
+                                <span>${item.display}</span>
+                            </div>
+                        </td>
+                        <td class="num-col">${item.stock}</td>
+                        <td class="num-col">${item.sold}</td>
+                        <td class="num-col remaining-cell ${remCls}">${rem}</td>
+                        <td><span class="status-pill ${status.cls}">${status.label}</span></td>
+                    `;
+                    summaryBody.appendChild(tr);
+                });
+                totalStockEl.textContent     = gStock;
+                totalSoldEl.textContent      = gSold;
+                totalRemainingEl.textContent = gRem;
+            }
+
+            function renderAll() {
+                renderCards();
+                renderSummary();
+                updateBadges();
+            }
+
+            // ── SESSION LABELS ──
+            function updateSessionLabels() {
+                const label = sessions[activeSession].label;
+                stockSessionLabel.textContent = `— ${label}`;
+                salesSessionLabel.textContent = `— ${label}`;
+                sessionTagEl.textContent = label;
+                sessionTagEl.className = 'session-tag ' + activeSession;
+            }
+
+            // ── SELL ──
+            function handleSell(e) {
+                const index = parseInt(e.currentTarget.dataset.index, 10);
+                const item = currentItems()[index];
+                if (item.sold < item.stock) {
+                    item.sold += 1;
+                    renderAll();
+                }
+            }
+
+            // ── APPLY STOCK ──
+            function applyStock() {
+                currentItems().forEach(item => {
+                    const input = document.getElementById(item.inputId);
+                    if (!input) return;
+                    let val = parseInt(input.value, 10);
+                    if (isNaN(val) || val < 0) { val = 0; input.value = 0; }
+                    item.stock = val;
+                });
+                renderAll();
+            }
+
+            // ── THEME SWITCH ──
+            function applyThemeForSession(sessionKey) {
+                if (sessionKey === 'evening') {
+                    document.body.classList.add('dark-theme');
+                } else {
+                    document.body.classList.remove('dark-theme');
+                }
+            }
+
+            // ── SWITCH SESSION ──
+            function switchSession(sessionKey) {
+                if (activeSession === sessionKey) return;
+                activeSession = sessionKey;
+
+                sessionBtns.forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.session === sessionKey);
+                });
+
+                applyThemeForSession(sessionKey);
+                buildStockInputs();
+                updateSessionLabels();
+                renderAll();
+                hideResetConfirm();
+            }
+
+            // ── RESET ──
+            function showResetConfirm() {
+                resetRequestBtn.classList.add('hidden');
+                confirmResetBtn.classList.remove('hidden');
+                cancelResetBtn.classList.remove('hidden');
+                resetNote.textContent = `This will clear all ${sessions[activeSession].label.toLowerCase()} sales and restore stock to the values above.`;
+            }
+            function hideResetConfirm() {
+                resetRequestBtn.classList.remove('hidden');
+                confirmResetBtn.classList.add('hidden');
+                cancelResetBtn.classList.add('hidden');
+                resetNote.textContent = 'Reset clears all sales for this session and restores stock to the values above.';
+            }
+            function performReset() {
+                currentItems().forEach(item => {
+                    const input = document.getElementById(item.inputId);
+                    let val = input ? parseInt(input.value, 10) : item.stock;
+                    if (isNaN(val) || val < 0) val = 0;
+                    item.stock = val;
+                    item.sold = 0;
+                });
+                renderAll();
+                hideResetConfirm();
+            }
+
+            // ── INIT ──
+            function init() {
+                sessionBtns.forEach(btn => {
+                    btn.addEventListener('click', () => switchSession(btn.dataset.session));
+                });
+
+                buildStockInputs();
+                updateSessionLabels();
+                setToday();
+                renderAll();
+                applyThemeForSession(activeSession);
+
+                applyStockBtn.addEventListener('click', applyStock);
+                resetRequestBtn.addEventListener('click', showResetConfirm);
+                confirmResetBtn.addEventListener('click', performReset);
+                cancelResetBtn.addEventListener('click', hideResetConfirm);
+                datePicker.addEventListener('change', updateDateDisplay);
+
+                hideResetConfirm();
+            }
+
+            init();
+        })();
+    </script>
+</body>
+</html>
